@@ -321,6 +321,32 @@ print("\nPopular Courses:")
 for course in popular_courses:
     print(f"{course['name']}: {course['popularity']}")
 
+@app.route('/get_classmates', methods=['GET'])
+def get_classmates():
+    student_id = request.args.get('student_id')
+    if student_id is None:
+        return {'error': 'Missing student_id'}, 400
+
+    with get_db_connection() as conn:
+        # Find the class of the selected student
+        student_class = conn.execute('''
+        SELECT class FROM students WHERE id = ?
+        ''', (student_id,)).fetchone()
+
+        if not student_class:
+            return {'error': 'Student not found'}, 404
+
+        # Fetch other students in the same class excluding the current student
+        classmates = conn.execute('''
+        SELECT id, name FROM students
+        WHERE class = ? AND id != ?
+        ''', (student_class['class'], student_id)).fetchall()
+
+    return {
+        'classmates': [{'id': classmate['id'], 'name': classmate['name']} for classmate in classmates]
+    }
+
+
 if __name__ == '__main__':
     init_db()  # Initialize the database with basic schema
     update_db_schema()  # Update the database schema to add new fields

@@ -2,11 +2,45 @@
 <html>
 <head>
     <title>Questionnaire</title>
+    <script>
+        function fetchClassmates(studentId) {
+            fetch(`/get_classmates?student_id=${studentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error fetching classmates:', data.error);
+                        return;
+                    }
+
+                    // Update each preference dropdown with classmates
+                    const classmateDropdowns = ['first_preference', 'second_preference', 'third_preference'];
+                    classmateDropdowns.forEach(id => {
+                        const dropdown = document.getElementById(id);
+                        dropdown.innerHTML = ''; // Clear existing options
+                        
+                        data.classmates.forEach(classmate => {
+                            const option = document.createElement('option');
+                            option.value = classmate.id;
+                            option.textContent = classmate.name;
+                            dropdown.appendChild(option);
+                        });
+                    });
+                })
+                .catch(err => console.error('Error:', err));
+        }
+
+        // Update classmates when the student is selected
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentDropdown = document.getElementById('student_id');
+            studentDropdown.addEventListener('change', function() {
+                fetchClassmates(this.value);
+            });
+        });
+    </script>
 </head>
 <body>
     <h1>Student Preferences Questionnaire</h1>
     <form method="post" action="/questionnaire">
-
         <label for="student_id">Student:</label>
         <select id="student_id" name="student_id">
             {% for student in students %}
@@ -16,13 +50,11 @@
         <br>
         <br>
         <label for="teacher_id">Teacher:</label>
-       <!-- Example of how to list teachers with their classes -->
-<select name="teacher_id">
-    {% for teacher in teachers %}
-        <option value="{{ teacher.id }}">{{ teacher.name }} ({{ teacher.class }})</option>
-    {% endfor %}
-    </select>
-    
+        <select name="teacher_id">
+            {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.name }} ({{ teacher.class }})</option>
+            {% endfor %}
+        </select>
         <br>
         <br>
         <label for="favorite_course">Favorite Course:</label>
@@ -34,27 +66,15 @@
         <br>
         <br>
         <label for="first_preference">1st Preferred Play/Work Partner:</label>
-        <select id="first_preference" name="first_preference">
-            {% for student in students %}
-                <option value="{{ student.id }}">{{ student.name }}</option>
-            {% endfor %}
-        </select>
+        <select id="first_preference" name="first_preference"></select>
         <br>
         <br>
         <label for="second_preference">2nd Preferred Play/Work Partner:</label>
-        <select id="second_preference" name="second_preference">
-            {% for student in students %}
-                <option value="{{ student.id }}">{{ student.name }}</option>
-            {% endfor %}
-        </select>
+        <select id="second_preference" name="second_preference"></select>
         <br>
         <br>
         <label for="third_preference">3rd Preferred Play/Work Partner:</label>
-        <select id="third_preference" name="third_preference">
-            {% for student in students %}
-                <option value="{{ student.id }}">{{ student.name }}</option>
-            {% endfor %}
-        </select>
+        <select id="third_preference" name="third_preference"></select>
         <br>
         <br>
         <input type="submit" value="Submit">
