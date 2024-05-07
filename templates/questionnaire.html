@@ -11,12 +11,10 @@
                         console.error('Error fetching classmates:', data.error);
                         return;
                     }
-
-                    // Update each preference dropdown with classmates
                     const classmateDropdowns = ['first_preference', 'second_preference', 'third_preference'];
                     classmateDropdowns.forEach(id => {
                         const dropdown = document.getElementById(id);
-                        dropdown.innerHTML = ''; // Clear existing options
+                        dropdown.innerHTML = '';
                         
                         data.classmates.forEach(classmate => {
                             const option = document.createElement('option');
@@ -28,8 +26,6 @@
                 })
                 .catch(err => console.error('Error:', err));
         }
-
-        // Update classmates when the student is selected
         document.addEventListener('DOMContentLoaded', () => {
             const studentDropdown = document.getElementById('student_id');
             studentDropdown.addEventListener('change', function() {

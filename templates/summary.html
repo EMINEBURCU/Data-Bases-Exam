@@ -2,24 +2,13 @@
 <html lang="en">
 <head>
     <title>Summary of Results</title>
-    <script>
-        function logPairs() {
-            {% for pair in pairs %}
-                var pairDict = {
-                    student1: "{{ pair.student1 }}",
-                    student2: "{{ pair.student2 }}",
-                    student3: "{{ pair.student3 }}",
-                    course: "{{ pair.course }}"
-                };
-                console.log(JSON.stringify(pairDict));
-            {% endfor %}
-        }
-        window.onload = logPairs;
-    </script>
-    
 </head>
 <body>
     <h1>Summary of Results</h1>
+
+    {% if success_message %}
+    <p style="color: green;">{{ success_message }}</p>
+{% endif %}
 
     <h2>Mutually Preferred Pairs</h2>
     <table>

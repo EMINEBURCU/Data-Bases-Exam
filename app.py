@@ -3,7 +3,7 @@ import sqlite3
 
 app = Flask(__name__)
 
-# Database setup and connection
+
 def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
@@ -16,7 +16,7 @@ def init_db():
         db.execute('DROP TABLE IF EXISTS courses')
         db.execute('DROP TABLE IF EXISTS teachers')
         db.execute('DROP TABLE IF EXISTS students')
-        # Create students table and insert initial data
+        # Create students table
         db.execute('''
             CREATE TABLE IF NOT EXISTS students (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +44,7 @@ def init_db():
         ]
         db.executemany('INSERT INTO students (name, age, class) VALUES (?, ?, ?)', students_data)
 
-        # Create teachers table and insert initial data
+        # Create teachers table 
         db.execute('''
             CREATE TABLE IF NOT EXISTS teachers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +59,7 @@ def init_db():
         ]
         db.executemany('INSERT INTO teachers (name, class) VALUES (?, ?)', teachers_data)
 
-        # Create courses table and insert initial data
+        # Create courses table 
         db.execute('''
             CREATE TABLE IF NOT EXISTS courses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,8 +69,8 @@ def init_db():
         courses_data = [
             ('Mathematics',),
             ('Science',),
-            ('History',),
-            ('English',),
+            ('Gym',),
+            ('Language',),
             ('Art',)
         ]
         db.executemany('INSERT INTO courses (name) VALUES (?)', courses_data)
@@ -101,7 +101,7 @@ def index():
 
 def fetch_mutually_preferred_pairs():
     with get_db_connection() as conn:
-        # Ensure the query line is properly indented
+       
         result = conn.execute('''
         SELECT
             student1.name AS student1,
@@ -203,6 +203,9 @@ def fetch_mutually_preferred_pairs(student_id=None, teacher_id=None, course_id=N
 
 @app.route('/questionnaire', methods=['GET', 'POST'])
 def questionnaire():
+    error_message = None
+    success_message = None
+
     if request.method == 'POST':
         # Extract form data
         student_id = request.form.get('student_id')
@@ -266,17 +269,18 @@ def questionnaire():
             courses = db.execute('SELECT * FROM courses').fetchall()
         return render_template('questionnaire.html', students=students, teachers=teachers, courses=courses)
 
+    return render_template('questionnaire.html', students=students, teachers=teachers, courses=courses, error_message=error_message, success_message=success_message)
 
 def update_db_schema():
     with get_db_connection() as db:
         try:
-            # Add a popularity column to the students table
+           
             db.execute('''
                 ALTER TABLE students
                 ADD COLUMN popularity INTEGER DEFAULT 0
             ''')
 
-            # Add a popularity column to the courses table
+          
             db.execute('''
                 ALTER TABLE courses
                 ADD COLUMN popularity INTEGER DEFAULT 0
@@ -286,10 +290,9 @@ def update_db_schema():
             print(f"Error updating schema: {e}")
 
 
-# Update popularity when preferences are submitted
+# Update popularity
 def update_popularity(student_id, teacher_id, course_id, preferences):
     with get_db_connection() as db:
-        # Update student popularity based on first, second, and third preferences
         preference_ids = (preferences['first_preference'], preferences['second_preference'], preferences['third_preference'])
         for pid in preference_ids:
             db.execute('''
@@ -298,7 +301,7 @@ def update_popularity(student_id, teacher_id, course_id, preferences):
                 WHERE id = ?
             ''', (pid,))
         
-        # Update course popularity
+      
         db.execute('''
             UPDATE courses
             SET popularity = popularity + 1
@@ -328,7 +331,7 @@ def get_classmates():
         return {'error': 'Missing student_id'}, 400
 
     with get_db_connection() as conn:
-        # Find the class of the selected student
+        
         student_class = conn.execute('''
         SELECT class FROM students WHERE id = ?
         ''', (student_id,)).fetchone()
@@ -336,7 +339,7 @@ def get_classmates():
         if not student_class:
             return {'error': 'Student not found'}, 404
 
-        # Fetch other students in the same class excluding the current student
+    
         classmates = conn.execute('''
         SELECT id, name FROM students
         WHERE class = ? AND id != ?
@@ -348,7 +351,7 @@ def get_classmates():
 
 
 if __name__ == '__main__':
-    init_db()  # Initialize the database with basic schema
-    update_db_schema()  # Update the database schema to add new fields
+    init_db()  
+    update_db_schema() 
     app.run(debug=True)
 
